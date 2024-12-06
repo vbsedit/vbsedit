@@ -1,0 +1,7 @@
+*
+
+!.gitignore
+!vbsedit.cpp
+!package.json
+!binding.gyp
+!README.md

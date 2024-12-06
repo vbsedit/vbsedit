@@ -1,0 +1,30 @@
+{
+  "name": "vbsedit",
+  "version": "1.0.3",
+  "main": "build/release/vbsedit.node",
+  "files": [
+    "vbsedit.cpp","binding.gyp"
+  ],
+  "description": "Windows C++ Node.JS addon that implements COM IDispatch object wrapper",
+  
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "node-gyp rebuild --release"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vbsedit/vbsedit.git"
+  },
+  "keywords": [
+    "com",
+    "createobject",
+    "activex"
+  ],
+  "author": "Vbsedit",
+  "license": "ISC",
+  "gypfile": true,
+  "bugs": {
+    "url": "https://github.com/vbsedit/vbsedit/issues"
+  },
+  "homepage": "https://github.com/vbsedit/vbsedit#readme"
+}
