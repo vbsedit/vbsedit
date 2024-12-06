@@ -1,7 +1,7 @@
 {
   'targets': [
     {
-      'target_name': 'vbsedit_node',
+      'target_name': 'vbsedit',
       'sources': [ 'vbsedit.cpp' ],
     }
   ]
