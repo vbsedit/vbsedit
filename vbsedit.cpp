@@ -154,25 +154,6 @@ CMyComObject* UnwrapMyObject(Local<Object> obj) {
     Local<External> field = obj->GetInternalField(0).As<External>();
     void* ptr = field->Value();
     return static_cast<CMyComObject*>(ptr);
-
-    /*bool found = false;
-
-    for (int i = 0; i < s_comobjects.GetCount(); i++)
-    {
-        if (s_comobjects.GetAt(i)==ptr)
-        {
-            found = true;
-            break;
-        }
-    }
-
-    if(found)
-        return static_cast<CMyComObject*>(ptr);
-
-    ATLTRACE(L"Not Found NULL %p\r\n", ptr);
-
-    return NULL;
-    */
 }
 
 std::string ObjectToString(v8::Isolate* isolate, Local<Value> value) {
@@ -309,7 +290,6 @@ class SetWeakCallbackData
 public:
 	SetWeakCallbackData(void* param, v8::Isolate* isolate, const v8::Local<v8::External>& javascript_object)
 		: param(param)
-		//,global(isolate,javascript_object)
 	{
 		global.Reset(isolate, javascript_object);
 	}
@@ -319,7 +299,6 @@ public:
 
 void cleanupInterface(const v8::WeakCallbackInfo<SetWeakCallbackData>& data)
 {
-	//ATLTRACE("cleanupInterface threadId:%d\n", GetCurrentThreadId());
 
 	SetWeakCallbackData* callback_data = data.GetParameter();
 
@@ -358,10 +337,7 @@ Local<Object> WrapMyObject(Isolate* isolate, CMyComObject* myobject)
 		if (!exists)
 		{
 			functions->Set(isolate->GetCurrentContext(), str_id, FunctionTemplate::New(isolate, EnumVariantNext)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-			//s_functions.Reset(isolate, functions);
 		}
-			
-		//ret = result->CreateDataProperty(isolate->GetCurrentContext(), str_id,FunctionTemplate::New(isolate, EnumVariantNext)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked()).FromMaybe(false);
 
 		ret = result->CreateDataProperty(isolate->GetCurrentContext(), str_id, functions->Get(isolate->GetCurrentContext(), str_id).ToLocalChecked()).FromMaybe(false);
 	}
@@ -374,7 +350,6 @@ Local<Object> WrapMyObject(Isolate* isolate, CMyComObject* myobject)
 
 	Local<External> map_ptr = External::New(isolate, myobject);
 	result->SetInternalField(0, map_ptr);
-	//result->SetAlignedPointerInInternalField(0, myobject);
 
 	if (myobject->m_needToBeReleased)
 		s_comobjects.push_back(myobject);
@@ -382,10 +357,6 @@ Local<Object> WrapMyObject(Isolate* isolate, CMyComObject* myobject)
 	if (s_garbageCollectorLevel > 0 && myobject->m_needToBeReleased)
 	{
 		int nb = s_comobjects.size();
-		/*if (nb > 0 && (nb % s_garbageCollectorLevel) == 0)
-		{
-			isolate->AdjustAmountOfExternalAllocatedMemory(s_garbageCollectorObjectSize * 1000 * nb);
-		}*/
 
 		if (nb > 300)
 		{
@@ -499,15 +470,6 @@ static void EnumVariantNext(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 	args.GetReturnValue().Set(result);
 
-	/*s_errorMessage = GetErrorMessage(excep.scode);
-	s_errorCode = excep.scode;
-
-	Local<String> error_message = String::NewFromTwoByte(args.GetIsolate(), (uint16_t*)LPCWSTR(s_errorMessage), NewStringType::kInternalized).ToLocalChecked();
-
-	Local<Value> exception = v8::Exception::Error(error_message);
-
-	args.GetIsolate()->ThrowException(exception);
-	*/
 }
 static void DispatchToString(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
@@ -837,9 +799,6 @@ HRESULT ValueToVariant(Isolate* isolate, Local<Value> arg, VARIANT* pVar)
 		ft.dwLowDateTime = time_value.LowPart;
 		ft.dwHighDateTime = time_value.HighPart;
 
-		//FILETIME localft;
-		//MyFileTimeToLocalFileTime(&ft, &localft);
-
 		InitVariantFromFileTime(&ft, pVar);
 
 		return S_OK;
@@ -981,7 +940,6 @@ HRESULT ValueToVariant(Isolate* isolate, Local<Value> arg, VARIANT* pVar)
 }
 Local<Value> VariantToValue(Isolate* isolate, VARIANT* pVar)
 {
-	//EscapableHandleScope handle_scope(isolate);
 
 	VARTYPE thetype = VT_NULL;
 
@@ -1487,7 +1445,6 @@ void MapGet(Local<Name> name, const PropertyCallbackInfo<Value>& info)
 
 	if (name->IsSymbol())
 	{
-		//MessageBoxW(NULL, L"Symbol", L"vbsedit_node addon", 0);
 
 		Local<v8::Symbol> mysymbol = Local<v8::Symbol>::Cast(name);
 
@@ -1507,11 +1464,7 @@ void MapGet(Local<Name> name, const PropertyCallbackInfo<Value>& info)
 			if (!exists)
 			{
 				functions->Set(isolate->GetCurrentContext(), str_iterator, FunctionTemplate::New(isolate, EnumVariantIterator)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-				//s_functions.Reset(isolate, functions);
 			}
-
-			//info.GetReturnValue().Set(FunctionTemplate::New(isolate, EnumVariantIterator, str_iterator)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-
 
 			info.GetReturnValue().Set(functions->Get(isolate->GetCurrentContext(), str_iterator).ToLocalChecked());
 
@@ -1781,12 +1734,9 @@ void MapGet(Local<Name> name, const PropertyCallbackInfo<Value>& info)
 				if (!exists)
 				{
 					functions->Set(isolate->GetCurrentContext(), str_id, FunctionTemplate::New(isolate, DispatchInvoke, str_id)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-					//s_functions.Reset(isolate, functions);
 				}
 
 				info.GetReturnValue().Set(functions->Get(isolate->GetCurrentContext(), str_id).ToLocalChecked());
-
-				//info.GetReturnValue().Set(FunctionTemplate::New(isolate, DispatchInvoke, str_id)->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
 
 				return;
 			}
@@ -1917,9 +1867,6 @@ void DispatchPut(Local<Name> name, Local<Value> arg, const PropertyCallbackInfo<
 
 	if (pDispatch)
 	{
-#ifdef _DEBUGMESSAGE
-		//MessageBox(NULL, szMember, L"Mapset", MB_OK);
-#endif
 
 		DISPID dispid;
 		HRESULT hr = pDispatch->GetIDsOfNames(IID_NULL, &szMember, 1, LOCALE_SYSTEM_DEFAULT, &dispid);
@@ -1946,22 +1893,11 @@ void DispatchPut(Local<Name> name, Local<Value> arg, const PropertyCallbackInfo<
 			VARIANT result;
 			VariantInit(&result);
 
-#ifdef _DEBUGMESSAGE
-			std::wstring s1;
-			s1.Format(L"var vt %d", var.vt);
-			//MessageBox(NULL, s1, L"Mapset", MB_OK);
-#endif
 
 			HRESULT hr = pDispatch->Invoke((DISPID)dispid, IID_NULL, LOCALE_SYSTEM_DEFAULT, DISPATCH_PROPERTYPUT, &dispparams, &result, &excep, &nArgErr);
 
 			VariantClear(&var);
 			VariantClear(&result);
-
-#ifdef _DEBUGMESSAGE
-			std::wstring s;
-			s.Format(L"res %x", hr);
-			//MessageBox(NULL, s, L"Mapset", MB_OK);
-#endif
 
 			if (hr != S_OK)
 			{
@@ -1985,7 +1921,6 @@ void DispatchPut(Local<Name> name, Local<Value> arg, const PropertyCallbackInfo<
 		}
 	}
 
-	//info.GetReturnValue().Set(false);
 
 }
 
@@ -2014,9 +1949,6 @@ void MapSet(Local<Name> name, Local<Value> arg, const PropertyCallbackInfo<Value
 
 	if (pDispatch)
 	{
-#ifdef _DEBUGMESSAGE
-		//MessageBox(NULL, szMember, L"Mapset", MB_OK);
-#endif
 
 		DISPID dispid;
 		HRESULT hr = pDispatch->GetIDsOfNames(IID_NULL, &szMember, 1, LOCALE_SYSTEM_DEFAULT, &dispid);
@@ -2043,22 +1975,11 @@ void MapSet(Local<Name> name, Local<Value> arg, const PropertyCallbackInfo<Value
 			VARIANT result;
 			VariantInit(&result);
 
-#ifdef _DEBUGMESSAGE
-			std::wstring s1;
-			s1.Format(L"var vt %d", var.vt);
-			//MessageBox(NULL, s1, L"Mapset", MB_OK);
-#endif
-
 			HRESULT hr = pDispatch->Invoke((DISPID)dispid, IID_NULL, LOCALE_SYSTEM_DEFAULT, DISPATCH_PROPERTYPUT, &dispparams, &result, &excep, &nArgErr);
 
 			VariantClear(&var);
 			VariantClear(&result);
 
-#ifdef _DEBUGMESSAGE
-			std::wstring s;
-			s.Format(L"res %x", hr);
-			//MessageBox(NULL, s, L"Mapset", MB_OK);
-#endif
 
 			if (hr != S_OK)
 			{
@@ -2087,74 +2008,11 @@ void MapSet(Local<Name> name, Local<Value> arg, const PropertyCallbackInfo<Value
 
 static void CreateObject(const v8::FunctionCallbackInfo<v8::Value>& args) 
 {
-	//MessageBoxW(NULL, L"CreateObject", L"vbsedit_node addon", 0);
-
     v8::Isolate* isolate = args.GetIsolate();
 
     int nArgs = (int)args.Length();
 
-    if (nArgs == 1 && args[0]->IsUint8Array())
-    {
-		v8::Handle<v8::Uint8Array> thearray = v8::Handle<v8::Uint8Array>::Cast(args[0]);
-
-		int size = thearray->Length();
-
-		HGLOBAL hglobal = GlobalAlloc(GMEM_MOVEABLE, size);
-
-		void* pglobal = GlobalLock(hglobal);
-		memcpy(pglobal, thearray->Buffer()->Data(), size);
-
-		/*
-		unsigned char* pp = (unsigned char*)pglobal;
-
-		std::stringstream stream;
-
-		for (int c = 0; c < size; c++)
-		{
-			stream << std::setfill('0') << std::setw(2) << std::hex << (int)pp[c];
-		}
-		std::string contents(stream.str());
-
-		//MessageBox(NULL, contents.c_str(), "node", 0);
-		*/
-		GlobalUnlock(hglobal);
-
-		IStream* spStream;
-		HRESULT hr = ::CreateStreamOnHGlobal(hglobal, TRUE, &spStream);
-
-		ULARGE_INTEGER _pos;
-		LARGE_INTEGER move;
-		move.LowPart = 0;
-		move.HighPart = 0;
-
-		spStream->Seek(move, 0, &_pos);
-
-		IDispatch* unk;
-		hr = CoUnmarshalInterface(spStream, IID_IUnknown, (void**)&unk);
-
-		if (hr == S_OK)
-		{
-			IDispatch* disp;
-			if (unk->QueryInterface(IID_IDispatch, (void**)&disp) == S_OK)
-			{
-				args.GetReturnValue().Set(WrapMyObject(isolate, new CMyComObject(disp, true)));
-			}
-		}
-		spStream->Release();
-
-		return;
-    }
-	else if (nArgs == 2 && args[0]->IsInt32() && args[1]->IsInt32())
-	{
-		v8::Handle<v8::Integer> _arg1 = v8::Handle<v8::Integer>::Cast(args[0]);
-		s_garbageCollectorLevel = _arg1->Value();
-	
-		v8::Handle<v8::Integer> _arg2 = v8::Handle<v8::Integer>::Cast(args[1]);
-		s_garbageCollectorObjectSize = _arg2->Value();
-
-		return;
-	}
-	else if (nArgs == 1 && args[0]->IsString())
+	if (nArgs == 1 && args[0]->IsString())
 	{
 		std::wstring str = ObjectToWString(isolate, args[0]);
 
@@ -2190,9 +2048,6 @@ NODE_MODULE_INITIALIZER(Local<Object> exports,
 	Local<Value> module,
 	Local<Context> context)
 {    
-	//MessageBoxW(NULL, L"NODE_MODULE_INITIALIZER", L"vbsedit_node addon", 0);
-
-
 	Isolate* isolate = context->GetIsolate();
 	
 	Local<Object> functions = Object::New(isolate);
@@ -2202,32 +2057,15 @@ NODE_MODULE_INITIALIZER(Local<Object> exports,
 
     HRESULT hr = CoInitialize(NULL);
 
-	// Prepare constructor template
 	Local<FunctionTemplate> clazz = FunctionTemplate::New(isolate, CreateObject);
 	clazz->SetClassName(v8str(isolate, "Dispatch"));
 
-	//clazz_methods.add(isolate, clazz, "toString", NodeToString);
-	//clazz_methods.add(isolate, clazz, "valueOf", NodeValueOf);
 
 	Local<ObjectTemplate>& inst = clazz->InstanceTemplate();
 	inst->SetInternalFieldCount(1);
 	inst->SetHandler(NamedPropertyHandlerConfiguration(MapGet, MapSet));
 	inst->SetHandler(IndexedPropertyHandlerConfiguration(IndexGet));
 	inst->SetCallAsFunctionHandler(DispatchInvoke, id);
-
-
-	//inst->SetNativeDataProperty(v8str(isolate, "test55"), MapGet);
-
-	//inst->SetHandler(IndexedPropertyHandlerConfiguration(NodeGetByIndex, NodeSetByIndex));
-	//inst->SetCallAsFunctionHandler(NodeCall);
-	//inst->SetNativeDataProperty(v8str(isolate, "__id"), NodeGet);
-	//inst->SetNativeDataProperty(v8str(isolate, "__value"), NodeGet);
-	//inst->SetLazyDataProperty(v8str(isolate, "__type"), NodeGet, Local<Value>(), ReadOnly);
-	//inst->SetLazyDataProperty(v8str(isolate, "__methods"), NodeGet, Local<Value>(), ReadOnly);
-	//inst->SetLazyDataProperty(v8str(isolate, "__vars"), NodeGet, Local<Value>(), ReadOnly);
-	//inst->SetNativeDataProperty(v8str(isolate, "__type"), NodeGet);
-	//inst->SetNativeDataProperty(v8str(isolate, "__methods"), NodeGet);
-	//inst->SetNativeDataProperty(v8str(isolate, "__vars"), NodeGet);
 
 	s_rawTemplate.Empty();
 	s_funcTemplate.Empty();
@@ -2244,15 +2082,6 @@ NODE_MODULE_INITIALIZER(Local<Object> exports,
 	s_rawTemplateEnum.Reset(isolate,rawTemplateEnum);
 
 	exports->Set(context, v8str(isolate, "CreateObject"), clazz->GetFunction(context).ToLocalChecked());
-	//target->Set(context, v8str(isolate, "cast"), FunctionTemplate::New(isolate, NodeCast)->GetFunction(ctx).ToLocalChecked());
-	//exports->Set(context, v8str(isolate, "release"), FunctionTemplate::New(isolate, NodeRelease)->GetFunction(context).ToLocalChecked());
-
-	//target->Set(ctx, v8str(isolate, "getConnectionPoints"), FunctionTemplate::New(isolate, NodeConnectionPoints)->GetFunction(ctx).ToLocalChecked());
-	//target->Set(ctx, v8str(isolate, "peekAndDispatchMessages"), FunctionTemplate::New(isolate, PeakAndDispatchMessages)->GetFunction(ctx).ToLocalChecked());
-
-	//Context::GetCurrent()->Global()->Set(v8str(isolate, "ActiveXObject"), t->GetFunction());
-	//NODE_DEBUG_MSG("DispObject initialized");
 
 }
 
-//NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
