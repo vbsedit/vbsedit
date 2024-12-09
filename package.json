@@ -1,9 +1,9 @@
 {
   "name": "vbsedit",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "build/release/vbsedit.node",
   "files": [
-    "vbsedit.cpp","binding.gyp"
+    "vbsedit.cpp","binding.gyp","README.md"
   ],
   "description": "Windows C++ Node.JS addon that implements COM IDispatch object wrapper",
   
